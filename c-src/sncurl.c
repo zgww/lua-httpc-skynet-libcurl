@@ -161,9 +161,16 @@ static void __set_cookie(lua_State *ls, CURL *eh, struct req *req){
 __POP__ : 
 	lua_pop(ls, 1);
 }
+
+static bool __has_field(lua_State *ls, const char *key){
+	lua_getfield(ls, -1, key);
+	bool has = !lua_isnil(ls, -1);
+	lua_pop(ls, 1);
+	return has
+}
 /*
   param = {
-  	method = 'GET|POST|PUT|DELTE|CUSTOMREQUEST',
+  	method = 'GET|POST|PUT|DELTE|HEAD|CUSTOMREQUEST',
 	enctype = 'multipart/formdata|application/x-www-form-urlencoded',
 	url = 'http://...|https://...',
 	postfields = string, --such as : name=123&pwd=3434&...
@@ -190,9 +197,25 @@ static int lrequest(lua_State *ls){
 	const char *url = _lget_str_of_field(ls, "url");
 	const char *enctype = _lget_str_of_field(ls, "enctype");
 	const char *postfields = _lget_str_of_field(ls, "postfields");
+	bool is_method_setted = false;
 
 	__set_headers(ls, eh, req);
 	__set_cookie(ls, eh, req);
+
+	if (__has_field(ls, "files")) {
+		__set_mutlipart_post(ls, eh, req, &is_method_setted);
+	} else if (__has_field(ls, "postfields")) {
+		__set_postfields(ls, eh, req, &is_method_setted);
+	}
+	if (!is_method_setted) {
+		if (strcmp(method, "GET") == 0) {
+			curl_easy_setopt(eh, CURLOPT_HTTPGET, 1);
+		} else if (strcmp(method, "GET") == 0) {
+			curl_easy_setopt(eh, CURLOPT_POST, 1);
+		} else {
+			curl_easy_setopt(eh, CURLOPT_CUSTOMREQUEST, method);
+		}
+	}
 
 	return 0;
 }
