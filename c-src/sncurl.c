@@ -55,35 +55,32 @@ static void __notify(struct req *req, int result, int status, const char *buf, i
 		memcpy(msg->buf, buf, buf_len);
 
 	struct skynet_context *ctx = skynet_handle_grab(req->handle);
-	printf("to %p:%d:%d. r : %d, status : %d\n", ctx, req->handle, req->session, result, status);
+	//printf("to %p:%d:%d. r : %d, status : %d\n", ctx, req->handle, req->session, result, status);
 
 	skynet_context_send(ctx, msg, sizeof(struct msg), 0, PTYPE_RESPONSE, req->session);
-	printf("send done\n");
+	//printf("send done\n");
 }
 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-
-static char header_buf[MAX(CURL_MAX_HTTP_HEADER, CURL_MAX_WRITE_SIZE) + 1];
 static size_t __on_header(char *buf, size_t size, size_t n, void *ud){
-	printf("__on_header\n");
+	//printf("__on_header\n");
 	struct req *req = ud;
 	size_t len = size * n;
-	//__notify(req, RESULT_HEADER, 0, buf, len);
+	__notify(req, RESULT_HEADER, 0, buf, len);
 
-	strncpy(header_buf, buf, len);
-	header_buf[len] = '\0';
+	//strncpy(header_buf, buf, len);
+	//header_buf[len] = '\0';
 	//printf("read head : %s\n", header_buf);
 	return len;
 }
 
 static size_t __on_write(char *buf, size_t size, size_t n, void *ud){
-	printf("__on_write\n");
+	//printf("__on_write\n");
 	struct req *req = ud;
 	size_t len = size * n;
-	//__notify(req, RESULT_WRITE, 0, buf, len);
+	__notify(req, RESULT_WRITE, 0, buf, len);
 	/**/
-	strncpy(header_buf, buf, len);
-	header_buf[len] = '\0';
+	//strncpy(header_buf, buf, len);
+	//header_buf[len] = '\0';
 	//printf("read body  : %s\n", header_buf);
 	/**/
 	return len;
@@ -132,15 +129,15 @@ static void __info_read(){
 		int len = result == CURLE_OK ? 0 : strlen(buf);
 		__notify(req, result == CURLE_OK ? RESULT_DONE : RESULT_FAIL, status, buf, len);
 
-		printf("free req\n");
-		printf("req is : %p eh %p ----\n", req, eh);
+		//printf("free req\n");
+		//printf("req is : %p eh %p ----\n", req, eh);
 		__free_req(req);
-		printf("remove handle\n");
+		//printf("remove handle\n");
 
 		curl_multi_remove_handle(cm, eh);
-		printf("cleanup\n");
+		//printf("cleanup\n");
 		curl_easy_cleanup(eh);
-		printf("done\n");
+		//printf("done\n");
 	}
 }
 
@@ -172,7 +169,7 @@ static void * __on_thread(void *ud){
 		__perform_all();
 		usleep(10 * 1000); // 10ms
 	}
-	printf("on curl_multi pthread end\n");
+	//printf("on curl_multi pthread end\n");
 }
 int main(){
 	__init();
@@ -188,22 +185,22 @@ int main(){
 }
 
 static const char * _lget_str_of_field(lua_State *ls, const char *key){
-	printf("\t_lget_str_of_field key : %s\n", key);
+	//printf("\t_lget_str_of_field key : %s\n", key);
 	lua_getfield(ls, -1, key);
-	printf("\t_lget_str_of_field top : %d\n", lua_gettop(ls));
+	//printf("\t_lget_str_of_field top : %d\n", lua_gettop(ls));
 
 	const char *v;
 	if (lua_isnil(ls, -1)){ 
-		printf("\t_lget_str_of_field is nil\n");
+		//printf("\t_lget_str_of_field is nil\n");
 		v = NULL;
 	} else {
-		printf("\t_lget_str_of_field is str\n");
+		//printf("\t_lget_str_of_field is str\n");
 		v = lua_tostring(ls, -1);
-		printf("\t_lget_str_of_field is str %s\n", v);
+		//printf("\t_lget_str_of_field is str %s\n", v);
 	}
-	printf("\t_lget_str_of_field pop\n");
+	//printf("\t_lget_str_of_field pop\n");
 	lua_pop(ls, 1);
-	printf("\t_lget_str_of_field pop succ\n");
+	//printf("\t_lget_str_of_field pop succ\n");
 	return v;
 }
 /*
@@ -346,7 +343,7 @@ static int lrequest(lua_State *ls){
 	CURL *eh = curl_easy_init();
 
 	struct req *req = calloc(1, sizeof(struct req));
-	printf("new req %p eh : %p\n", req, eh);
+	//printf("new req %p eh : %p\n", req, eh);
 
 	lua_getfield(ls, -1, "handle"); // h, ls
 	req->handle = (int64_t)lua_tointeger(ls, -1);
@@ -355,62 +352,62 @@ static int lrequest(lua_State *ls){
 	req->session = (int64_t)lua_tointeger(ls, -1);
 	lua_pop(ls, 2); // ls
 
-	printf("get hs : %d %d top : %d\n", (int)req->handle, req->session, lua_gettop(ls));
+	//printf("get hs : %d %d top : %d\n", (int)req->handle, req->session, lua_gettop(ls));
 
 	curl_easy_setopt(eh, CURLOPT_PRIVATE, req);
 
-	printf("get method %s\n", "nil");
+	//printf("get method %s\n", "nil");
 	const char *method = _lget_str_of_field(ls, "method");
-	printf("get method %s\n", method == NULL ? "nil" : method);
+	//printf("get method %s\n", method == NULL ? "nil" : method);
 	const char *url = _lget_str_of_field(ls, "url");
-	printf("get url %s\n", url == NULL ? "nil" : url);
+	//printf("get url %s\n", url == NULL ? "nil" : url);
 	const char *postfields = _lget_str_of_field(ls, "postfields");
-	printf("get postfields %s\n", postfields ?  postfields : "nil");
+	//printf("get postfields %s\n", postfields ?  postfields : "nil");
 
 	assert(url && "must set url");
 
 	if (!method) method = postfields ? "POST" : "GET";
 
-	printf("get arg : %s %s %s\n", method, url, postfields ? postfields : "nil");
+	//printf("get arg : %s %s %s\n", method, url, postfields ? postfields : "nil");
 
 	bool has_file = __has_type(ls, "file");
-	printf("has file %s\n", has_file ? "Y" : "N");
+	//printf("has file %s\n", has_file ? "Y" : "N");
 
 	__set_headers(ls, eh, req);
 	__set_cookie(ls, eh, req);
 
 	if (has_file) {
-		printf("set multi  :%s\n", method);
+		//printf("set multi  :%s\n", method);
 		__set_multi(ls, eh, req);
 	} else if (strcmp(method, "GET") == 0) {
-		printf("set CURLOPT_GET  :%s\n", method);
+		//printf("set CURLOPT_GET  :%s\n", method);
 		curl_easy_setopt(eh, CURLOPT_HTTPGET, 1);
 	} else if (strcmp(method, "POST")) {
-		printf("set CURLOPT_POST  :%s\n", method);
+		//printf("set CURLOPT_POST  :%s\n", method);
 		curl_easy_setopt(eh, CURLOPT_POST, 1);
 	} else  {
-		printf("set customrequest  :%s\n", method);
+		//printf("set customrequest  :%s\n", method);
 		curl_easy_setopt(eh, CURLOPT_CUSTOMREQUEST, method);
 	}
 
 	if (!has_file && postfields)  {
-		printf("set postfields :%s\n", postfields);
+		//printf("set postfields :%s\n", postfields);
 		curl_easy_setopt(eh, CURLOPT_POSTFIELDS, postfields);
 	}
 
-	printf("set url : %s\n", url);
+	//printf("set url : %s\n", url);
 	curl_easy_setopt(eh, CURLOPT_URL, url);
-	printf("set write function\n");
+	//printf("set write function\n");
 	curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, __on_write);
-	printf("set write data\n");
+	//printf("set write data\n");
 	curl_easy_setopt(eh, CURLOPT_WRITEDATA, req);
 
-	printf("set header func\n");
+	//printf("set header func\n");
 	curl_easy_setopt(eh, CURLOPT_HEADERFUNCTION, __on_header);
-	printf("set header data\n");
+	//printf("set header data\n");
 	curl_easy_setopt(eh, CURLOPT_HEADERDATA, req);
 
-	printf("curl multi add handle\n");
+	//printf("curl multi add handle\n");
 	curl_multi_add_handle(cm, eh);
 
 	return 0;
