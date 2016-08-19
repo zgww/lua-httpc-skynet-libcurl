@@ -320,16 +320,11 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
   	method = 'GET|POST|PUT|DELTE|HEAD|CUSTOMREQUEST',
 	postfields = string, --such as : name=123&pwd=3434&...
 
-	{key = str, type = 'param'},
-	{key = str, filename = 'string', ['Content-Type'] = 'string', type = 'file'},
-
-	params = {
-	},
-	files = {
-	},
+	{key = str, val = str, type = 'param'},
+	{key = str, val = str, filename = 'string', ['Content-Type'] = 'string', type = 'file'},
 
 	headers = {
-		'key', 'val', ...
+		'key:val ', '', ...
 	},
 	cookie = 'name=xx;name=xx;...',
 	handle = int,
@@ -430,6 +425,20 @@ static int lget_buf(lua_State *ls){
 		lua_pushnil(ls);
 	return 1;
 }
+static int lescape(lua_State *ls){
+	const char *str = lua_tostring(ls, -1);
+	char *out = curl_easy_escape(NULL, str, 0);
+	lua_pushstring(ls, out);
+	curl_free(out);
+	return 1;
+}
+static int lunescape(lua_State *ls){
+	const char *str = lua_tostring(ls, -1);
+	char *out = curl_easy_unescape(NULL, str, 0, 0);
+	lua_pushstring(ls, out);
+	curl_free(out);
+	return 1;
+}
 
 int luaopen_sncurl(lua_State *ls){
 	luaL_Reg lib[] = {
@@ -437,6 +446,8 @@ int luaopen_sncurl(lua_State *ls){
 		{"get_result", lget_result},
 		{"get_status", lget_status},
 		{"get_buf", lget_buf},
+		{"escape", lescape},
+		{"unescape", lunescape},
 		{NULL, NULL},
 	};
 
