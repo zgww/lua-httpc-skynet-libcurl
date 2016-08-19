@@ -1,10 +1,13 @@
 
+skynet = /home/zgww/pe/skynet
 
-i = -I~/ws/skynet/3rd/lua
+i = -I~/ws/skynet/3rd/lua 
+i += -I$(skynet)/skynet-src 
+
 l = -L~/ws/skynet/3rd/lua -llua -lpthread
 
 all : 
-	gcc -fPIC -o sncurl c-src/sncurl.c -lcurl $(i) $(l)
+	gcc -fPIC -shared -o sncurl.so c-src/sncurl.c -lcurl $(i) $(l)
 
 
 easy : 
