@@ -203,6 +203,8 @@ static const char * _lget_str_of_field(lua_State *ls, const char *key){
 	//printf("\t_lget_str_of_field pop succ\n");
 	return v;
 }
+
+
 /*
 	headers = {
 		'key: val', ...
@@ -329,9 +331,7 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
 	cookie = 'name=xx;name=xx;...',
 	handle = int,
 	session = int,
-  }
-*/
-static int lrequest(lua_State *ls){
+	accept_encoding = str, } */ static int lrequest(lua_State *ls){
 	assert(lua_gettop(ls) == 1 && "sncurl.request argc ~= 1");
 	__init();
 
@@ -351,6 +351,8 @@ static int lrequest(lua_State *ls){
 
 	curl_easy_setopt(eh, CURLOPT_PRIVATE, req);
 
+	//printf("get method %s\n", "nil");
+	const char *accept_encoding = _lget_str_of_field(ls, "accept_encoding");
 	//printf("get method %s\n", "nil");
 	const char *method = _lget_str_of_field(ls, "method");
 	//printf("get method %s\n", method == NULL ? "nil" : method);
@@ -401,6 +403,9 @@ static int lrequest(lua_State *ls){
 	curl_easy_setopt(eh, CURLOPT_HEADERFUNCTION, __on_header);
 	//printf("set header data\n");
 	curl_easy_setopt(eh, CURLOPT_HEADERDATA, req);
+
+	if (accept_encoding) 
+		curl_easy_setopt(eh, CURLOPT_ACCEPT_ENCODING, accept_encoding);
 
 	//printf("curl multi add handle\n");
 	curl_multi_add_handle(cm, eh);
