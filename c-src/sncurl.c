@@ -278,8 +278,8 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
 	int len = lua_rawlen(ls, -1);
 	int i;
 
-	struct curl_httppost *post;
-	struct curl_httppost *last;
+	struct curl_httppost *post = NULL;
+	struct curl_httppost *last = NULL;
 	for (i = 1; i <= len; i++) {
 		lua_rawgeti(ls, -1, i); // pair, ls
 		const char *type = _lget_str_of_field(ls, "type");
