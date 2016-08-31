@@ -111,7 +111,7 @@ static void __free_req(struct req *req){
 static void __info_read(){
 	CURLMsg *msg;
 	int msgs_left = 0;
-	while (msg = curl_multi_info_read(cm, &msgs_left)){
+	while ((msg = curl_multi_info_read(cm, &msgs_left)) != 0){
 		if (msg->msg != CURLMSG_DONE)
 			continue;
 
@@ -424,7 +424,7 @@ static int lget_status(lua_State *ls){
 }
 static int lget_buf(lua_State *ls){
 	struct msg *msg = lua_touserdata(ls, -1);
-	if (msg->buf)
+	if (msg->buf_len > 0)
 		lua_pushlstring(ls, msg->buf, msg->buf_len);
 	else
 		lua_pushnil(ls);
