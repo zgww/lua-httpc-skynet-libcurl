@@ -331,7 +331,10 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
 	cookie = 'name=xx;name=xx;...',
 	handle = int,
 	session = int,
-	accept_encoding = str, } */ static int lrequest(lua_State *ls){
+	accept_encoding = str, 
+	proxy = '[scheme(default HTTP proxy)://]host[:port(default 1080)]'
+} */
+static int lrequest(lua_State *ls){
 	assert(lua_gettop(ls) == 1 && "sncurl.request argc ~= 1");
 	__init();
 
@@ -360,6 +363,8 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
 	//printf("get url %s\n", url == NULL ? "nil" : url);
 	const char *postfields = _lget_str_of_field(ls, "postfields");
 	//printf("get postfields %s\n", postfields ?  postfields : "nil");
+	const char *proxy = _lget_str_of_field(ls, "postfields");
+	//printf("get proxy %s\n", proxy ?  proxy : "nil");
 
 	assert(url && "must set url");
 
@@ -403,6 +408,9 @@ static void __set_multi(lua_State *ls, CURL *eh, struct req *req){
 	curl_easy_setopt(eh, CURLOPT_HEADERFUNCTION, __on_header);
 	//printf("set header data\n");
 	curl_easy_setopt(eh, CURLOPT_HEADERDATA, req);
+	//printf("set proxy \n");
+	if (proxy) 
+		curl_easy_setopt(eh, CURLOPT_PROXY, proxy);
 
 	if (accept_encoding) 
 		curl_easy_setopt(eh, CURLOPT_ACCEPT_ENCODING, accept_encoding);
