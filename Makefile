@@ -1,16 +1,24 @@
 
 skynet = /home/zgww/pe/skynet
+f = 
+cpdir = ../lua_spider/lib/
 
-i = -I~/ws/skynet/3rd/lua 
+ifeq ($(shell uname), Darwin)
+
+f += -undefined dynamic_lookup
+skynet = /Users/zgww/ws/skynet
+cpdir = ../lua_spider/lib/mac/
+
+endif
+
+i = -I$(skynet)/3rd/lua 
 i += -I$(skynet)/skynet-src 
 
-l = -L~/ws/skynet/3rd/lua -llua -lpthread
+l = -lpthread
 
 all : 
-	gcc -fPIC -shared -o sncurl.so c-src/sncurl.c -lcurl $(i) $(l)
-	cp -f sncurl.so ../lua_spider/lib/sncurl.so
-
-
+	gcc -fPIC -shared -o sncurl.so c-src/sncurl.c -lcurl $(i) $(l) $(f)
+	cp -f sncurl.so $(cpdir)
 easy : 
 	gcc -o easy.out c-src/easy.c -lcurl -lpthread
 	./easy.out
