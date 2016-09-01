@@ -185,22 +185,15 @@ int main(){
 }
 
 static const char * _lget_str_of_field(lua_State *ls, const char *key){
-	//printf("\t_lget_str_of_field key : %s\n", key);
 	lua_getfield(ls, -1, key);
-	//printf("\t_lget_str_of_field top : %d\n", lua_gettop(ls));
-
-	const char *v;
-	if (lua_isnil(ls, -1)){ 
-		//printf("\t_lget_str_of_field is nil\n");
-		v = NULL;
-	} else {
-		//printf("\t_lget_str_of_field is str\n");
-		v = lua_tostring(ls, -1);
-		//printf("\t_lget_str_of_field is str %s\n", v);
-	}
-	//printf("\t_lget_str_of_field pop\n");
+	const char *v = lua_isnil(ls, -1) ? NULL : lua_tostring(ls, -1);
 	lua_pop(ls, 1);
-	//printf("\t_lget_str_of_field pop succ\n");
+	return v;
+}
+static int _lget_int_of_field(lua_State *ls, const char *key){
+	lua_getfield(ls, -1, key);
+	int v = lua_isnil(ls, -1) ? 0 : (int)lua_tointeger(ls, -1);
+	lua_pop(ls, 1);
 	return v;
 }
 
@@ -415,6 +408,11 @@ static int lrequest(lua_State *ls){
 	if (accept_encoding) 
 		curl_easy_setopt(eh, CURLOPT_ACCEPT_ENCODING, accept_encoding);
 
+	int follow_loc = _lget_int_of_field(ls, "follow_location");
+	//printf("set follow location %d\n", follow_loc);
+	if (follow_loc) {
+		curl_easy_setopt(eh, CURLOPT_FOLLOWLOCATION, follow_loc);
+	}
 	//printf("curl multi add handle\n");
 	curl_multi_add_handle(cm, eh);
 
