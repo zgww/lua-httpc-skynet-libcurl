@@ -127,7 +127,8 @@ static void __info_read(){
 
 		const char *buf = result == CURLE_OK ? NULL : curl_easy_strerror(result);
 		int len = result == CURLE_OK ? 0 : strlen(buf);
-		__notify(req, result == CURLE_OK ? RESULT_DONE : RESULT_FAIL, status, buf, len);
+		__notify(req, result == CURLE_OK ? RESULT_DONE : RESULT_FAIL, 
+				result == CURLE_OK ? status : result, buf, len);
 
 		//printf("free req\n");
 		//printf("req is : %p eh %p ----\n", req, eh);
